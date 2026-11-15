@@ -1,0 +1,12 @@
+Student 1 courses
+SELECT c.code,c.title,o.term FROM enrolments e JOIN offerings o ON e.offering_id=o.offering_id JOIN courses c ON c.course_id=o.course_id WHERE e.student_id=1
+[('SIM008', 'Simulated course 8', '2026-T1'), ('SIM021', 'Simulated course 21', '2026-T1'), ('SIM034', 'Simulated course 34', '2026-T1'), ('SIM047', 'Simulated course 47', '2026-T1'), ('SIM060', 'Simulated course 60', '2026-T1'), ('SIM073', 'Simulated course 73', '2026-T1')]
+Class 42 (first 10 rows)
+SELECT s.student_id,s.full_name FROM enrolments e JOIN students s ON s.student_id=e.student_id WHERE e.offering_id=42 LIMIT 10
+[(4, 'Synthetic Student 00004'), (27, 'Synthetic Student 00027'), (45, 'Synthetic Student 00045'), (63, 'Synthetic Student 00063'), (68, 'Synthetic Student 00068'), (86, 'Synthetic Student 00086'), (104, 'Synthetic Student 00104'), (127, 'Synthetic Student 00127'), (145, 'Synthetic Student 00145'), (163, 'Synthetic Student 00163')]
+Enrolment counts
+SELECT o.offering_id,c.code,COUNT(e.student_id) FROM offerings o JOIN courses c ON c.course_id=o.course_id LEFT JOIN enrolments e ON e.offering_id=o.offering_id GROUP BY o.offering_id,c.code ORDER BY o.offering_id LIMIT 10
+[(1, 'SIM001', 600), (2, 'SIM002', 600), (3, 'SIM003', 600), (4, 'SIM004', 600), (5, 'SIM005', 600), (6, 'SIM006', 600), (7, 'SIM007', 600), (8, 'SIM008', 600), (9, 'SIM009', 600), (10, 'SIM010', 600)]
+More than five courses
+SELECT student_id,COUNT(*) FROM enrolments GROUP BY student_id HAVING COUNT(*)>5 ORDER BY student_id LIMIT 10
+[(1, 6), (2, 6), (3, 6), (4, 6), (5, 6), (6, 6), (7, 6), (8, 6), (9, 6), (10, 6)]

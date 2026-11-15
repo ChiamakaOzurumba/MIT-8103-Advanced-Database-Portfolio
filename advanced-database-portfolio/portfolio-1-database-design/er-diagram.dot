@@ -1,0 +1,14 @@
+digraph ER {
+ graph [rankdir=TB,bgcolor="white",pad="0.3",nodesep="0.6",ranksep="0.65"];
+ node [shape=record,fontname="Helvetica",fontsize=12,style=filled,fillcolor="#EDF4FA",color="#194B68"];
+ departments [label="DEPARTMENTS|PK department_id|UQ name"];
+ students [label="STUDENTS|PK student_id|full_name|UQ email|FK department_id"];
+ courses [label="COURSES|PK course_id|UQ code|title, credits|FK department_id"];
+ offerings [label="OFFERINGS|PK offering_id|FK course_id|term, capacity|UQ course_id + term"];
+ enrolments [label="ENROLMENTS|PK/FK student_id|PK/FK offering_id|registered_at"];
+ departments -> students [label="1 : 0..many"];
+ departments -> courses [label="1 : 0..many"];
+ courses -> offerings [label="1 : 0..many"];
+ students -> enrolments [label="1 : 0..many"];
+ offerings -> enrolments [label="1 : 0..many"];
+}

@@ -1,0 +1,11 @@
+# Portfolio 1 - Design and modelling
+## Case study
+Campus Register is a simulated university course-registration service. Students register for term-specific course offerings; registry staff maintain courses, capacity and class lists. All records are synthetic and do not represent Miva's live systems. The users are students, registry staff and departmental administrators.
+## Relationships and constraints
+One department has many students and courses. One course has many offerings across terms. Students and offerings have a many-to-many relationship resolved by enrolments. Each enrolment belongs to exactly one student and one offering. A student or offering may have zero enrolments.
+The composite enrolment primary key prevents duplicate registration. Foreign keys prevent orphan records; email, department name and course code are unique. Credits and capacity have CHECK constraints. A trigger prevents capacity overflow on insertion. The demonstration does not implement general editing of capacity or reassignment of an enrolment; production code must constrain those update paths too.
+## Normalisation to third normal form (3NF)
+An unnormalised student record could contain a repeating list of courses and department names. 1NF: store individual enrolments as rows with atomic attributes. 2NF: course titles, student names and offering terms do not belong in the composite-key enrolments table because they depend on only part of that key. 3NF: department names are stored once in departments, and course details once in courses, removing transitive dependencies from students and offerings. registered_at depends on the complete student/offering pair.
+Functional dependencies: student_id -> full_name,email,department_id; course_id -> code,title,credits,department_id; offering_id -> course_id,term,capacity; department_id -> name; (student_id,offering_id) -> registered_at. Candidate keys include email, code and (course_id,term) in their respective tables.
+The model assumes each student and course has one department and at most one offering per course per term. Multiple sections would need a section identifier.
+See schema.sql, er-diagram.png and evidence/design-tests.txt. The deterministic seed is inside run_portfolio.py.

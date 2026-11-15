@@ -1,0 +1,5 @@
+CREATE and READ: {"student_id": 1, "language": "en-GB", "notifications": ["email"], "accessibility": {"large_text": false}}
+UPDATE: {"student_id": 1, "language": "en-GB", "notifications": ["email", "sms"], "accessibility": {"large_text": false}}
+PERSISTENCE: updated value survived close/reopen. PASS
+DELETE: second test key removed. PASS
+Final key count=1
