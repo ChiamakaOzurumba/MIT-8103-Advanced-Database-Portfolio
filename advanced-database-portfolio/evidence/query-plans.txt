@@ -1,9 +1,0 @@
-BEFORE
-(3, 0, 211, 'SCAN e USING COVERING INDEX sqlite_autoindex_enrolments_1')
-(7, 0, 45, 'SEARCH s USING INTEGER PRIMARY KEY (rowid=?)')
-AFTER
-(4, 0, 115, 'SEARCH e USING INDEX idx_enrolments_offering (offering_id=?)')
-(9, 0, 40, 'SEARCH s USING INTEGER PRIMARY KEY (rowid=?)')
-Median milliseconds: before=1.9331; after=1.0644; ratio=1.82x
-Result equality: PASS (600 rows)
-30 timed executions per phase after 5 warm-ups; same connection and dataset. Full fetch included. Before phase always first; warm-cache local microbenchmark, not a production prediction. Index consumes storage and adds insert/update cost.

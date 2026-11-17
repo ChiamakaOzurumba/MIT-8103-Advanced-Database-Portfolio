@@ -1,8 +1,0 @@
-COMMIT: student 1 registration is visible to connection B; count=1. PASS
-ROLLBACK: deletion reversed; student 1 remains registered. PASS
-ISOLATION: A sees its uncommitted count=2; B sees committed count=1. PASS
-CONCURRENCY: B cannot obtain writer lock while A is active: database is locked. PASS
-CAPACITY: after A commits, B retries and is rejected: Course offering is full. PASS
-Final offering 999 enrolments=2, capacity=2: no oversubscription. PASS
-Two real independent connections with overlapping transactions; deterministic interleaving in one Python process, not a multi-machine load test.
-WAL allows a reader during a writer transaction; writers remain serialised. A production client should handle lock errors with bounded retries and recheck capacity.
