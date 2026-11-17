@@ -1,0 +1,352 @@
+=== P4 01_setup_collections.js ===
+collections_created: access_logs, preservation_logs, catalogue
+=== P4 02_bulk_data.js ===
+catalogue_count: 42000 (NumberLong total = 42000)
+access_logs_count: 5000
+preservation_logs_count: 6000
+grand_total: 53000
+=== P4 03_aggregations.js ===
+--- A1: assets per collection, with archived count ---
+[
+  {
+    _id: 'AFRO-HL',
+    total: 6000,
+    archived: 1200
+  },
+  {
+    _id: 'NTA-NEWS',
+    total: 6000,
+    archived: 1200
+  },
+  {
+    _id: 'NOLLY',
+    total: 6000,
+    archived: 1200
+  },
+  {
+    _id: 'NTA-DRAMA',
+    total: 6000,
+    archived: 1200
+  },
+  {
+    _id: 'FELA',
+    total: 6000,
+    archived: 1200
+  },
+  {
+    _id: 'SUNNY-ADE',
+    total: 6000,
+    archived: 1200
+  },
+  {
+    _id: 'NTA-LAG',
+    total: 6000,
+    archived: 1200
+  }
+]
+--- A2: top 5 assets by preservation event count (join via $lookup) ---
+[
+  {
+    events: 150,
+    assetId: 36,
+    title: 'Independence Footage 35'
+  },
+  {
+    events: 150,
+    assetId: 37,
+    title: 'Election Coverage 36'
+  },
+  {
+    events: 150,
+    assetId: 27,
+    title: 'Music Documentary 26'
+  },
+  {
+    events: 150,
+    assetId: 3,
+    title: 'Music Documentary 2'
+  },
+  {
+    events: 150,
+    assetId: 17,
+    title: 'News Bulletin 16'
+  }
+]
+--- A3: monthly preservation events ---
+[
+  {
+    _id: '2024-01',
+    events: 279
+  },
+  {
+    _id: '2024-02',
+    events: 261
+  },
+  {
+    _id: '2024-03',
+    events: 279
+  },
+  {
+    _id: '2024-04',
+    events: 270
+  },
+  {
+    _id: '2024-05',
+    events: 279
+  },
+  {
+    _id: '2024-06',
+    events: 270
+  },
+  {
+    _id: '2024-07',
+    events: 279
+  },
+  {
+    _id: '2024-08',
+    events: 279
+  },
+  {
+    _id: '2024-09',
+    events: 270
+  },
+  {
+    _id: '2024-10',
+    events: 279
+  },
+  {
+    _id: '2024-11',
+    events: 270
+  },
+  {
+    _id: '2024-12',
+    events: 279
+  },
+  {
+    _id: '2025-01',
+    events: 279
+  },
+  {
+    _id: '2025-02',
+    events: 227
+  },
+  {
+    _id: '2025-03',
+    events: 248
+  },
+  {
+    _id: '2025-04',
+    events: 240
+  },
+  {
+    _id: '2025-05',
+    events: 248
+  },
+  {
+    _id: '2025-06',
+    events: 240
+  },
+  {
+    _id: '2025-07',
+    events: 248
+  },
+  {
+    _id: '2025-08',
+    events: 248
+  },
+  {
+    _id: '2025-09',
+    events: 240
+  },
+  {
+    _id: '2025-10',
+    events: 248
+  },
+  {
+    _id: '2025-11',
+    events: 240
+  }
+]
+--- A4: access log status distribution ---
+[
+  {
+    _id: 'APPROVED',
+    count: 834
+  },
+  {
+    _id: 'REQUESTED',
+    count: 834
+  },
+  {
+    _id: 'ACTIVE',
+    count: 833
+  },
+  {
+    _id: 'RETURNED',
+    count: 833
+  },
+  {
+    _id: 'OVERDUE',
+    count: 833
+  },
+  {
+    _id: 'REJECTED',
+    count: 833
+  }
+]
+--- A5: outcome breakdown per preservation action ---
+[
+  {
+    _id: {
+      action: 'DISPOSAL',
+      outcome: 'COMPLETED'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'DISPOSAL',
+      outcome: 'FLAGGED'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'DISPOSAL',
+      outcome: 'PASSED'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'DISPOSAL',
+      outcome: 'PASSED WITH NOTES'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'INSPECTION',
+      outcome: 'COMPLETED'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'INSPECTION',
+      outcome: 'FLAGGED'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'INSPECTION',
+      outcome: 'PASSED'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'INSPECTION',
+      outcome: 'PASSED WITH NOTES'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'MIGRATION',
+      outcome: 'COMPLETED'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'MIGRATION',
+      outcome: 'FLAGGED'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'MIGRATION',
+      outcome: 'PASSED'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'MIGRATION',
+      outcome: 'PASSED WITH NOTES'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'REPAIR',
+      outcome: 'COMPLETED'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'REPAIR',
+      outcome: 'FLAGGED'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'REPAIR',
+      outcome: 'PASSED'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'REPAIR',
+      outcome: 'PASSED WITH NOTES'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'RESTORATION',
+      outcome: 'COMPLETED'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'RESTORATION',
+      outcome: 'FLAGGED'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'RESTORATION',
+      outcome: 'PASSED'
+    },
+    count: 300
+  },
+  {
+    _id: {
+      action: 'RESTORATION',
+      outcome: 'PASSED WITH NOTES'
+    },
+    count: 300
+  }
+]
+=== P4 04_index_demo.js ===
+dropIndex skipped (no prior index): index not found with name [collectionCode_1]
+filter under test: {"collectionCode":"NOLLY"}
+--- BEFORE (no index on collectionCode; expect COLLSCAN) ---
+stage: COLLSCAN
+docsExamined: 42000
+executionTimeMillis: 13
+created index: collectionCode_1
+--- AFTER (index on collectionCode; expect IXSCAN) ---
+stage: FETCH
+docsExamined: 6000
+executionTimeMillis: 5
+docsExamined dropped from 42000 to 6000
