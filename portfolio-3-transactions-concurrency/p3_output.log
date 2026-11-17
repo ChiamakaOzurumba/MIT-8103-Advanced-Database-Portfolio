@@ -1,0 +1,76 @@
+Pager usage is off.
+==== T1: COMMITTED transaction ====
+BEGIN
+INSERT 0 1
+COMMIT
+   committed_visible   
+-----------------------
+ TST3 Holder Committed
+(1 row)
+
+==== T2: ROLLED-BACK transaction ====
+BEGIN
+INSERT 0 1
+ROLLBACK
+ rolledback_visible 
+--------------------
+                  0
+(1 row)
+
+==== T3: SAVEPOINT recovery (DO block used only to raise+catch an error) ====
+BEGIN
+INSERT 0 1
+SAVEPOINT
+psql:01_transactions.sql:32: NOTICE:  T3: caught inside DO block - simulated error inside DO block
+DO
+ROLLBACK
+INSERT 0 1
+COMMIT
+     t3_survivors      
+-----------------------
+ TST3 After Savepoint
+ TST3 Before Savepoint
+ TST3 Holder Committed
+(3 rows)
+
+==== T4: pass a value into a DO block with set_config/current_setting ====
+ set_value 
+-----------
+ on
+(1 row)
+
+psql:01_transactions.sql:46: NOTICE:  T4: ndma.flag read inside DO block = on
+DO
+DELETE 3
+=== P3 two-session concurrency demos ===
+2026-11-17 22:46:53,689 MainThread === race_demos START (student Chiamaka Ozurumba 2026/A/MIT/1005) ===
+2026-11-17 22:46:53,705 MainThread --- PART 1: the bug (double lending) ---
+2026-11-17 22:46:53,720 T2 T2 PART1 T2: ok=True detail=inserted
+2026-11-17 22:46:53,721 T1 T1 PART1 T1: ok=True detail=inserted
+2026-11-17 22:46:53,722 MainThread PART1 result: T1=(True, 'inserted') T2=(True, 'inserted') both_succeeded=True
+2026-11-17 22:46:53,722 MainThread --- PART 2: UNIQUE constraint fix ---
+2026-11-17 22:46:53,743 T2 T2 PART2 T2: ok=True detail=inserted
+2026-11-17 22:46:53,743 T1 T1 PART2 T1: ok=False detail=23505 ERROR:  duplicate key value violates unique constraint "ux_loan_active_race"
+2026-11-17 22:46:53,746 MainThread PART2 result: T1=(False, '23505 ERROR:  duplicate key value violates unique constraint "ux_loan_active_race"') T2=(True, 'inserted') both_succeeded=False
+2026-11-17 22:46:53,755 MainThread --- PART 3: EXCLUSION CONSTRAINT fix (btree_gist) ---
+2026-11-17 22:46:53,771 T2 T2 PART3 T2: ok=True detail=inserted
+2026-11-17 22:46:53,773 T1 T1 PART3 T1: ok=False detail=23P01 ERROR:  conflicting key value violates exclusion constraint "loan_no_overlap"
+2026-11-17 22:46:53,773 MainThread PART3 result: T1=(False, '23P01 ERROR:  conflicting key value violates exclusion constraint "loan_no_overlap"') T2=(True, 'inserted') both_succeeded=False
+2026-11-17 22:46:53,779 MainThread --- PART 4: SERIALIZABLE retry on SQLSTATE 40001 ---
+2026-11-17 22:46:53,795 T2 T2 PART4 T2: 40001 on attempt 1, retrying
+2026-11-17 22:46:53,802 T2 T2 PART4 T2: 40001 on attempt 2, retrying
+2026-11-17 22:46:53,807 T1 T1 PART4 T1: inserted on attempt 1
+2026-11-17 22:46:53,809 T2 T2 PART4 T2: skipped on attempt 3
+2026-11-17 22:46:53,809 MainThread PART4 result: T1=(True, 'inserted attempt 1') T2=(False, 'skipped: APPROVED loan already exists')
+2026-11-17 22:46:53,814 MainThread --- PART 5: READ COMMITTED vs REPEATABLE READ ---
+2026-11-17 22:46:53,829 MainThread PART5 READ_COMMITTED: before=0 after=1 same_snapshot=False
+2026-11-17 22:46:53,844 MainThread PART5 REPEATABLE_READ: before=0 after=0 same_snapshot=True
+2026-11-17 22:46:53,844 MainThread PART5 summary: READ_COMMITTED same=False ; REPEATABLE_READ same=True
+2026-11-17 22:46:53,849 MainThread --- PART 6: deadlock then fixed lock order ---
+2026-11-17 22:46:54,857 T1 T1 PART6-buggy T1: (False, '40P01 deadlock detected')
+2026-11-17 22:46:54,858 T2 T2 PART6-buggy T2: (True, 'locked RACE-DL-B then RACE-DL-A')
+2026-11-17 22:46:54,860 MainThread PART6-buggy result: T1=(False, '40P01 deadlock detected') T2=(True, 'locked RACE-DL-B then RACE-DL-A')
+2026-11-17 22:46:56,868 T1 T1 PART6-fixed T1: (True, 'locked RACE-DL-A then RACE-DL-B')
+2026-11-17 22:46:56,871 T2 T2 PART6-fixed T2: (True, 'locked RACE-DL-A then RACE-DL-B')
+2026-11-17 22:46:56,871 MainThread PART6-fixed result: T1=(True, 'locked RACE-DL-A then RACE-DL-B') T2=(True, 'locked RACE-DL-A then RACE-DL-B')
+2026-11-17 22:46:56,871 MainThread === race_demos END ===
