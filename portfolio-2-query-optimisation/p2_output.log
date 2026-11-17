@@ -1,0 +1,96 @@
+==== Q1: Asset count and status mix per collection (JOIN + aggregate + FILTER) ====
+==== Q2: Top assets by preservation event count (CTE + window RANK) ====
+==== Q3: Loan activity per user with running total (JOIN + windowed aggregate) ====
+==== Q4: Collection hierarchy (RECURSIVE CTE) ====
+==== Q5: Licence revenue per holder (JOIN + aggregate) ====
+==== Q6: Monthly preservation events with month-over-month growth (window) ====
+==== Q7: Copies per site with availability rate (JOIN + aggregate) ====
+==== Q8: Assets with no preservation event in the last 90 days (anti-join via HAVING) ====
+=== P2 EXPLAIN ANALYZE before/after ===
+Pager usage is off.
+Timing is on.
+psql:02_explain_analyze.sql:10: NOTICE:  index "idx_pe_outcome_date" does not exist, skipping
+DROP INDEX
+Time: 0.407 ms
+ANALYZE
+Time: 63.500 ms
+==== BEFORE: no composite index on (outcome, event_date) ====
+---- Query: flagged preservation events in the last 60 days, per asset ----
+                                                               QUERY PLAN                                                                
+-----------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=820.42..820.52 rows=40 width=12) (actual time=1.666..1.668 rows=10 loops=1)
+   Sort Key: (count(*)) DESC, asset_id
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=170
+   ->  HashAggregate  (cost=818.96..819.36 rows=40 width=12) (actual time=1.654..1.657 rows=10 loops=1)
+         Group Key: asset_id
+         Batches: 1  Memory Usage: 24kB
+         Buffers: shared hit=170
+         ->  Bitmap Heap Scan on preservation_event  (cost=82.08..810.76 rows=1639 width=4) (actual time=0.175..1.369 rows=1672 loops=1)
+               Recheck Cond: (event_date >= (CURRENT_DATE - 60))
+               Filter: (outcome = 'FLAGGED'::text)
+               Rows Removed by Filter: 4840
+               Heap Blocks: exact=161
+               Buffers: shared hit=170
+               ->  Bitmap Index Scan on idx_pe_date  (cost=0.00..81.67 rows=6584 width=0) (actual time=0.149..0.149 rows=6512 loops=1)
+                     Index Cond: (event_date >= (CURRENT_DATE - 60))
+                     Buffers: shared hit=9
+ Planning:
+   Buffers: shared hit=93
+ Planning Time: 0.317 ms
+ Execution Time: 1.705 ms
+(21 rows)
+
+Time: 2.559 ms
+
+==== CREATE targeted composite index (outcome, event_date) ====
+CREATE INDEX
+Time: 81.835 ms
+ANALYZE
+Time: 69.857 ms
+
+==== AFTER: composite index in place ====
+                                                                  QUERY PLAN                                                                   
+-----------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=663.41..663.51 rows=40 width=12) (actual time=0.585..0.586 rows=10 loops=1)
+   Sort Key: (count(*)) DESC, asset_id
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=149 read=3
+   ->  HashAggregate  (cost=661.94..662.34 rows=40 width=12) (actual time=0.576..0.578 rows=10 loops=1)
+         Group Key: asset_id
+         Batches: 1  Memory Usage: 24kB
+         Buffers: shared hit=149 read=3
+         ->  Bitmap Heap Scan on preservation_event  (cost=24.77..653.91 rows=1607 width=4) (actual time=0.076..0.395 rows=1672 loops=1)
+               Recheck Cond: ((outcome = 'FLAGGED'::text) AND (event_date >= (CURRENT_DATE - 60)))
+               Heap Blocks: exact=149
+               Buffers: shared hit=149 read=3
+               ->  Bitmap Index Scan on idx_pe_outcome_date  (cost=0.00..24.37 rows=1607 width=0) (actual time=0.057..0.057 rows=1672 loops=1)
+                     Index Cond: ((outcome = 'FLAGGED'::text) AND (event_date >= (CURRENT_DATE - 60)))
+                     Buffers: shared read=3
+ Planning:
+   Buffers: shared hit=11 read=1
+ Planning Time: 0.190 ms
+ Execution Time: 0.610 ms
+(19 rows)
+
+Time: 1.041 ms
+
+==== HONEST NOTE: full-table aggregate keeps a Seq Scan ====
+---- Query: total events per outcome (no predicate, whole table scanned) ----
+                                                             QUERY PLAN                                                             
+------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=1527.08..1527.09 rows=4 width=18) (actual time=13.261..13.262 rows=4 loops=1)
+   Sort Key: (count(*)) DESC
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=597
+   ->  HashAggregate  (cost=1527.00..1527.04 rows=4 width=18) (actual time=13.255..13.257 rows=4 loops=1)
+         Group Key: outcome
+         Batches: 1  Memory Usage: 24kB
+         Buffers: shared hit=597
+         ->  Seq Scan on preservation_event  (cost=0.00..1217.00 rows=62000 width=10) (actual time=0.005..4.205 rows=62000 loops=1)
+               Buffers: shared hit=597
+ Planning Time: 0.054 ms
+ Execution Time: 13.277 ms
+(12 rows)
+
+Time: 13.638 ms
