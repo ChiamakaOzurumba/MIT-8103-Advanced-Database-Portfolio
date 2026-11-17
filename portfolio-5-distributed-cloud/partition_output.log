@@ -1,0 +1,39 @@
+Pager usage is off.
+psql:01_partitioning.sql:10: NOTICE:  table "loan_partitioned" does not exist, skipping
+DROP TABLE
+CREATE TABLE
+psql:01_partitioning.sql:42: NOTICE:  partitions_created=36
+DO
+INSERT 0 400
+==== rows per partition ====
+   partition   | rows 
+---------------+------
+ loan_p_202604 |   22
+ loan_p_202605 |   63
+ loan_p_202606 |   63
+ loan_p_202607 |   63
+ loan_p_202608 |   63
+ loan_p_202609 |   63
+ loan_p_202610 |   63
+(7 rows)
+
+==== pruned EXPLAIN ANALYZE: only partitions for the last 2 months are scanned ====
+                                                                        QUERY PLAN                                                                         
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=930.52..930.53 rows=1 width=8) (actual time=0.038..0.039 rows=1 loops=1)
+   ->  Append  (cost=15.47..929.98 rows=216 width=0) (actual time=0.009..0.030 rows=126 loops=1)
+         Subplans Removed: 34
+         ->  Bitmap Heap Scan on loan_p_202609 loan_partitioned_1  (cost=19.47..29.02 rows=6 width=0) (actual time=0.009..0.013 rows=63 loops=1)
+               Recheck Cond: ((start_at >= (date_trunc('month'::text, now()) - '2 mons'::interval)) AND (start_at < date_trunc('month'::text, now())))
+               Heap Blocks: exact=1
+               ->  Bitmap Index Scan on loan_p_202609_pkey  (cost=0.00..19.46 rows=6 width=0) (actual time=0.006..0.006 rows=63 loops=1)
+                     Index Cond: ((start_at >= (date_trunc('month'::text, now()) - '2 mons'::interval)) AND (start_at < date_trunc('month'::text, now())))
+         ->  Bitmap Heap Scan on loan_p_202610 loan_partitioned_2  (cost=19.47..29.02 rows=6 width=0) (actual time=0.006..0.009 rows=63 loops=1)
+               Recheck Cond: ((start_at >= (date_trunc('month'::text, now()) - '2 mons'::interval)) AND (start_at < date_trunc('month'::text, now())))
+               Heap Blocks: exact=1
+               ->  Bitmap Index Scan on loan_p_202610_pkey  (cost=0.00..19.46 rows=6 width=0) (actual time=0.004..0.004 rows=63 loops=1)
+                     Index Cond: ((start_at >= (date_trunc('month'::text, now()) - '2 mons'::interval)) AND (start_at < date_trunc('month'::text, now())))
+ Planning Time: 0.763 ms
+ Execution Time: 0.085 ms
+(15 rows)
+

@@ -1,0 +1,81 @@
+[replica] create replication role on primary (idempotent)
+DO
+[replica] write replication wal settings to a conf.d snippet
+[replica] insert replication/trust lines at TOP of pg_hba.conf (idempotent)
+[replica] restart primary to apply wal/hba settings
+[replica] stop any running replica on /var/lib/postgresql/16/replica
+pg_ctl: directory "/var/lib/postgresql/16/replica" does not exist
+[replica] recreate replica data directory and chmod 700
+[replica] run pg_basebackup (PGPASSWORD passed, trust auth in effect)
+waiting for checkpoint
+43015/43015 kB (100%), 0/1 tablespace
+43015/43015 kB (100%), 1/1 tablespace
+[replica] write minimal postgresql.conf for the replica
+[replica] copy pg_hba.conf and pg_ident.conf from primary into replica data dir
+[replica] start replica on port 5433 with pg_ctl
+waiting for server to start.... done
+server started
+[replica] wait for replica to accept connections
+[replica] is up on port 5433
+[replica] done. primary=5432 replica=5433
+Pager usage is off.
+==== Step 1: identify THIS server ====
+ port | in_recovery |  role   
+------+-------------+---------
+ 5432 | f           | PRIMARY
+(1 row)
+
+==== Step 2: connect to the REPLICA on port 5433; a write must be rejected ====
+You are now connected to database "mediaarchive" as user "postgres" via socket in "/var/run/postgresql" at port "5433".
+ port | in_recovery |  role   
+------+-------------+---------
+ 5433 | t           | REPLICA
+(1 row)
+
+psql:03_replica_tests.sql:22: ERROR:  cannot execute CREATE TABLE in a read-only transaction
+==== Step 3: switch back to PRIMARY, write a marker row ====
+You are now connected to database "mediaarchive" as user "postgres" via socket in "/var/run/postgresql" at port "5432".
+CREATE TABLE
+INSERT 0 1
+ id |              note               
+----+---------------------------------
+  1 | replication marker from primary
+(1 row)
+
+==== Step 4: check the marker has streamed to the REPLICA (wait 2 s for WAL replay) ====
+ pg_sleep 
+----------
+ 
+(1 row)
+
+You are now connected to database "mediaarchive" as user "postgres" via socket in "/var/run/postgresql" at port "5433".
+ marker_rows_on_replica 
+------------------------
+                      1
+(1 row)
+
+==== Step 5: replication lag from pg_stat_replication (PRIMARY only) ====
+You are now connected to database "mediaarchive" as user "postgres" via socket in "/var/run/postgresql" at port "5432".
+ application_name |   state   | sync_state | lag_bytes |         lag_kb         
+------------------+-----------+------------+-----------+------------------------
+ walreceiver      | streaming | async      |         0 | 0.00000000000000000000
+(1 row)
+
+==== Step 6: delete the marker on PRIMARY, verify it is gone on REPLICA ====
+DELETE 1
+ marker_rows_on_primary 
+------------------------
+                      0
+(1 row)
+
+ pg_sleep 
+----------
+ 
+(1 row)
+
+You are now connected to database "mediaarchive" as user "postgres" via socket in "/var/run/postgresql" at port "5433".
+ marker_rows_on_replica 
+------------------------
+                      0
+(1 row)
+
