@@ -1,0 +1,113 @@
+      ?column?      
+--------------------
+ indexes_created=68
+(1 row)
+
+ setval 
+--------
+      8
+(1 row)
+
+ ?column? 
+----------
+ role=4
+(1 row)
+
+ ?column? 
+----------
+ users=12
+(1 row)
+
+   ?column?    
+---------------
+ collections=8
+(1 row)
+
+  ?column?   
+-------------
+ creators=20
+(1 row)
+
+ ?column?  
+-----------
+ formats=8
+(1 row)
+
+ ?column?  
+-----------
+ assets=40
+(1 row)
+
+ ?column?  
+-----------
+ copies=60
+(1 row)
+
+  ?column?   
+-------------
+ licences=25
+(1 row)
+
+ ?column? 
+----------
+ loans=15
+(1 row)
+
+         ?column?         
+--------------------------
+ preservation_event=62000
+(1 row)
+
+              ?column?               
+-------------------------------------
+ date_range=2024-12-31 .. 2026-11-30
+(1 row)
+
+         ?column?          
+---------------------------
+ rows_in_next_14_days=1144
+(1 row)
+
+=== P1 constraint tests ===
+DELETE 0
+DELETE 0
+DELETE 0
+DELETE 0
+DELETE 0
+psql:05_constraint_tests.sql:29: NOTICE:  TEST00 CONTROL valid insert: PASS
+DO
+psql:05_constraint_tests.sql:46: NOTICE:  TEST01 NOT NULL title: PASS
+DO
+psql:05_constraint_tests.sql:57: NOTICE:  TEST02 CHECK code regex: PASS
+DO
+psql:05_constraint_tests.sql:75: NOTICE:  TEST03 UNIQUE barcode: PASS
+DO
+psql:05_constraint_tests.sql:95: NOTICE:  TEST04 FK loan.user_id: PASS
+DO
+psql:05_constraint_tests.sql:113: NOTICE:  TEST05 CHECK licence dates: PASS
+DO
+psql:05_constraint_tests.sql:128: NOTICE:  TEST06 TRIGGER archived-no-checksum: PASS - Asset 45 cannot be marked ARCHIVED without a checksum
+DO
+psql:05_constraint_tests.sql:143: NOTICE:  TEST07 CHECK duration_sec > 0: PASS
+DO
+psql:05_constraint_tests.sql:167: NOTICE:  TEST08 CHECK loan end_at > start_at: PASS
+DO
+psql:05_constraint_tests.sql:181: NOTICE:  TEST09 CHECK email regex: PASS
+DO
+psql:05_constraint_tests.sql:208: NOTICE:  TEST10 PARTIAL UNIQUE ux_loan_active: PASS
+DO
+DELETE 1
+DELETE 0
+DELETE 0
+DELETE 0
+DELETE 0
+DELETE 0
+DELETE 0
+DELETE 0
+Done. Expected: 10 PASS + 1 PASS (control).
+=== P1 row counts ===
+ assets | copies | loans | preservation_events 
+--------+--------+-------+---------------------
+     40 |     60 |    15 |               62000
+(1 row)
+
